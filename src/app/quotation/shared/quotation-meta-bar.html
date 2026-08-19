@@ -1,0 +1,42 @@
+<section class="bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 shadow-[0_1px_4px_0_rgba(0,0,0,0.04)]">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1fr_1fr] gap-3 items-end">
+    <label class="block">
+      <span class="field-label">Quotation No.</span>
+      <input class="detail-input bg-slate-50 font-semibold tabular-nums" [value]="quotation().header.number" readonly />
+    </label>
+    <label class="block">
+      <span class="field-label">Division</span>
+      <select class="detail-input" [(ngModel)]="quotation().header.division">
+        <option value="" disabled>Select division</option>
+        <option>Avonbrook Motors</option>
+        <option>City Motors</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="field-label">Sales Executive</span>
+      <select class="detail-input" [(ngModel)]="quotation().header.executive">
+        <option value="" disabled>Select sales executive</option>
+        <option>Padraig Greenwood</option>
+        <option>Aneesa Davids</option>
+        <option>Thabo Nkosi</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="field-label">Franchise</span>
+      <select class="detail-input" [(ngModel)]="quotation().header.franchise">
+        <option>HONDA</option>
+        <option>BMW</option>
+        <option>FORD</option>
+        <option>TOYOTA</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="field-label">Date</span>
+      <input type="date" class="detail-input" [(ngModel)]="quotation().header.date" />
+    </label>
+    <label class="block">
+      <span class="field-label">Total Payment</span>
+      <input class="detail-input text-right font-semibold text-blue-700 tabular-nums" [value]="quotation().pricing.totalPayment | zar" readonly aria-label="Total payment" />
+    </label>
+  </div>
+</section>

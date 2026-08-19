@@ -1,0 +1,285 @@
+<div class="flex flex-col h-screen overflow-hidden">
+  <div class="flex flex-1 overflow-hidden bg-[#F8FAFC]">
+    <aside
+      class="sidebar-anim flex flex-col h-full bg-white border-r border-[#E5E7EB] flex-shrink-0 overflow-hidden"
+      [style.width.px]="sidebarCollapsed() ? 72 : 260"
+    >
+      <div class="flex items-center h-16 border-b border-[#E5E7EB] flex-shrink-0" [class.gap-3]="!sidebarCollapsed()" [class.px-4]="!sidebarCollapsed()" [class.justify-center]="sidebarCollapsed()">
+        @if (!sidebarCollapsed()) {
+          <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <svg [lucideIcon]="'car' | iconOf" class="w-4.5 h-4.5 text-white"></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[15px] font-bold text-slate-900 tracking-tight truncate leading-none">Fortuna</p>
+            <p class="text-[10px] font-semibold text-blue-500 tracking-[0.14em] uppercase mt-0.5">DMS Platform</p>
+          </div>
+        }
+        <button
+          type="button"
+          class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
+          (click)="toggleSidebar()"
+          [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        >
+          <svg [lucideIcon]="'chevron-left' | iconOf" class="w-3.5 h-3.5" [style.transform]="sidebarCollapsed() ? 'rotate(180deg)' : 'none'"></svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto py-3 no-sb">
+        @for (group of navSections; track group.section) {
+          <div class="mb-2">
+            @if (!sidebarCollapsed()) {
+              <p class="px-4 pt-1 pb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.13em]">{{ group.section }}</p>
+            }
+            @for (row of sidebarRows(group.items); track row.item.id) {
+              <div class="px-2">
+                <button
+                  type="button"
+                  (click)="activateSidebarRow(row)"
+                  class="relative w-full flex items-center rounded-xl py-2.5 mb-0.5 transition-all duration-150 cursor-pointer text-left"
+                  [class.gap-3]="!sidebarCollapsed()"
+                  [class.px-3]="!sidebarCollapsed()"
+                  [class.justify-center]="sidebarCollapsed()"
+                  [class.px-0]="sidebarCollapsed()"
+                  [class.bg-blue-50]="row.isActive"
+                  [class.text-blue-700]="row.isActive"
+                  [class.font-semibold]="row.isActive"
+                  [class.text-slate-500]="!row.isActive"
+                  [class.hover:text-slate-800]="!row.isActive"
+                  [class.hover:bg-slate-50]="!row.isActive"
+                >
+                  <svg [lucideIcon]="row.item.icon | iconOf" class="w-4 h-4 flex-shrink-0"></svg>
+                  @if (row.item.attention && sidebarCollapsed()) {
+                    <span class="nav-attention-dot absolute top-1.5 right-1.5"></span>
+                  }
+                  @if (!sidebarCollapsed()) {
+                    <span class="flex-1 text-[13px] truncate">{{ row.item.label }}</span>
+                    @if (row.item.attention) {
+                      <span class="nav-attention-dot"></span>
+                    }
+                    @if (row.item.badge) {
+                      <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center flex-shrink-0">{{ row.item.badge }}</span>
+                    }
+                    @if (row.item.children) {
+                      <svg [lucideIcon]="'chevron-down' | iconOf" class="w-3 h-3 text-slate-400" [style.transform]="row.isOpen ? 'rotate(180deg)' : 'none'"></svg>
+                    }
+                  }
+                </button>
+                @if (row.item.children && row.isOpen && !sidebarCollapsed()) {
+                  <div class="ml-5 border-l border-slate-100 pl-2 mb-1 space-y-0.5">
+                    @for (child of row.item.children; track child.id) {
+                      <button
+                        type="button"
+                        (click)="navigateInActiveTab(childPath(child.id))"
+                        class="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-[12.5px] transition-all duration-150 cursor-pointer"
+                        [class.bg-blue-50]="isChildActive(child.id)"
+                        [class.text-blue-700]="isChildActive(child.id)"
+                        [class.font-semibold]="isChildActive(child.id)"
+                        [class.text-slate-400]="!isChildActive(child.id)"
+                        [class.hover:text-slate-700]="!isChildActive(child.id)"
+                        [class.hover:bg-slate-50]="!isChildActive(child.id)"
+                      >
+                        <svg [lucideIcon]="child.icon | iconOf" class="w-3.5 h-3.5"></svg>
+                        <span class="truncate">{{ child.label }}</span>
+                        @if (child.attention) {
+                          <span class="nav-attention-dot ml-auto"></span>
+                        }
+                      </button>
+                    }
+                    @if (row.item.children.length === 0) {
+                      <div class="px-3 py-2 text-[11px] italic text-slate-400">Nothing here for this demo</div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </nav>
+
+      <div class="border-t border-[#E5E7EB] p-3 flex-shrink-0">
+        <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">HK</div>
+          @if (!sidebarCollapsed()) {
+            <div class="flex-1 min-w-0">
+              <p class="text-[13px] font-semibold text-slate-800 truncate leading-none">Hitesh Kumar</p>
+              <p class="text-[11px] text-slate-400 truncate mt-0.5">General Manager</p>
+            </div>
+            <svg [lucideIcon]="'more-horizontal' | iconOf" class="w-4 h-4 text-slate-300 group-hover:text-slate-500"></svg>
+          }
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+      <header class="h-16 flex items-center gap-4 px-6 bg-white border-b border-[#E5E7EB] flex-shrink-0 z-30 shadow-[0_1px_0_0_#f1f5f9]">
+        <div class="flex-1 max-w-md relative">
+          <svg [lucideIcon]="'search' | iconOf" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none"></svg>
+          <input
+            placeholder="Search vehicles, customers, jobs"
+            class="w-full h-10 pl-10 pr-12 text-[13px] bg-slate-50 border border-[#E5E7EB] rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+          />
+        </div>
+        <div class="flex items-center gap-1.5 ml-auto">
+          <button class="hidden lg:flex items-center gap-2 h-10 px-3.5 text-[13px] font-medium text-slate-600 bg-slate-50 border border-[#E5E7EB] rounded-xl hover:bg-slate-100 transition-colors">
+            <svg [lucideIcon]="'building-2' | iconOf" class="w-3.5 h-3.5 text-slate-400"></svg>Avonbrook Motors<svg [lucideIcon]="'chevron-down' | iconOf" class="w-3 h-3 text-slate-400"></svg>
+          </button>
+          <div class="w-px h-6 bg-[#E5E7EB] mx-1"></div>
+          <button class="flex items-center gap-2 h-10 px-4 text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">
+            <svg [lucideIcon]="'plus' | iconOf" class="w-4 h-4"></svg><span class="hidden sm:inline">New</span>
+          </button>
+          <div class="relative" data-notif-scope>
+            <button
+              type="button"
+              class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 transition-colors relative"
+              (click)="toggleNotifications()"
+              aria-label="Toggle notifications"
+            >
+              <svg [lucideIcon]="'bell' | iconOf" class="w-4 h-4"></svg>
+              <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            @if (notifOpen()) {
+              <div class="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-[#E5E7EB] shadow-xl z-50 overflow-hidden fade-up">
+                <div class="flex items-center justify-between px-4 py-3.5 border-b border-[#E5E7EB]">
+                  <span class="text-[14px] font-semibold text-slate-900">Notifications</span>
+                  <button type="button" class="text-xs font-medium text-blue-600 hover:text-blue-700">Mark all read</button>
+                </div>
+                <div class="px-4 py-3.5 border-b border-[#f8fafc]">
+                  <p class="text-[13px] font-semibold text-slate-900">3 invoices overdue</p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Total €128,400 escalation required</p>
+                </div>
+                <div class="px-4 py-3.5 border-b border-[#f8fafc]">
+                  <p class="text-[13px] font-semibold text-slate-900">18 SKUs below reorder level</p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">Parts stock at minimum thresholds</p>
+                </div>
+              </div>
+            }
+          </div>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 h-10 px-3 rounded-xl text-[13px] font-medium transition-colors bg-violet-50 text-violet-700 border border-violet-200"
+            (click)="toggleAiPanel()"
+          >
+            <svg [lucideIcon]="'sparkles' | iconOf" class="w-4 h-4"></svg><span class="hidden md:inline">AI</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="h-10 bg-white border-b border-[#E5E7EB] flex items-end overflow-x-auto no-sb flex-shrink-0">
+        @for (tab of workspaceTabs.tabs(); track tab.id) {
+          <button
+            type="button"
+            class="group relative flex items-center gap-2 px-4 h-10 text-[12px] font-medium whitespace-nowrap border-r border-[#f1f5f9] flex-shrink-0 transition-all duration-150"
+            [class.text-blue-700]="workspaceTabs.activeTabId() === tab.id"
+            [class.bg-slate-50]="workspaceTabs.activeTabId() === tab.id"
+            [class.text-slate-500]="workspaceTabs.activeTabId() !== tab.id"
+            [class.hover:bg-slate-50]="workspaceTabs.activeTabId() !== tab.id"
+            (click)="workspaceTabs.activate(tab)"
+          >
+            @if (workspaceTabs.activeTabId() === tab.id) {
+              <span class="absolute inset-x-0 top-0 h-0.5 bg-blue-500 rounded-b"></span>
+            }
+            <svg
+              [lucideIcon]="tab.icon | iconOf"
+              class="w-3.5 h-3.5"
+              [class.text-blue-500]="workspaceTabs.activeTabId() === tab.id"
+              [class.text-slate-400]="workspaceTabs.activeTabId() !== tab.id"
+            ></svg>
+            <span>{{ tab.label }}</span>
+            @if (workspaceTabs.tabs().length > 1) {
+              <span
+                role="button"
+                tabindex="0"
+                class="ml-1 w-5 h-5 inline-flex items-center justify-center rounded-md text-slate-300 hover:text-slate-600 hover:bg-slate-200"
+                (click)="$event.stopPropagation(); workspaceTabs.close(tab.id)"
+                (keydown.enter)="$event.stopPropagation(); workspaceTabs.close(tab.id)"
+                aria-label="Close tab"
+              >
+                <svg [lucideIcon]="'x' | iconOf" class="w-3 h-3"></svg>
+              </span>
+            }
+          </button>
+        }
+        <button
+          type="button"
+          class="w-10 h-10 flex items-center justify-center flex-shrink-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border-r border-[#f1f5f9]"
+          (click)="workspaceTabs.addTab()"
+          aria-label="Add workspace tab"
+        >
+          <svg [lucideIcon]="'plus' | iconOf" class="w-4 h-4"></svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-1.5 px-6 py-2.5 bg-white border-b border-[#f1f5f9] flex-shrink-0">
+        @for (crumb of breadcrumbs(); track $index) {
+          <span class="flex items-center gap-1.5">
+            @if ($index > 0) {
+              <svg [lucideIcon]="'chevron-right' | iconOf" class="w-3 h-3 text-slate-300"></svg>
+            }
+            <span class="text-[12px]" [class.font-medium]="$last" [class.text-slate-700]="$last" [class.text-slate-400]="!$last">{{ crumb }}</span>
+          </span>
+        }
+      </div>
+
+      <div class="flex flex-1 overflow-hidden">
+        <router-outlet></router-outlet>
+
+        @if (aiPanelOpen()) {
+          <aside class="w-[296px] flex flex-col bg-white border-l border-[#E5E7EB] h-full flex-shrink-0 slide-in">
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-[#E5E7EB] flex-shrink-0">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <svg [lucideIcon]="'sparkles' | iconOf" class="w-4 h-4 text-white"></svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-[14px] font-bold text-slate-900">Fortuna AI</p>
+                <p class="text-[10px] text-slate-400">Dealership intelligence engine</p>
+              </div>
+              <button
+                type="button"
+                class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+                (click)="closeAiPanel()"
+                aria-label="Close Fortuna AI panel"
+              >
+                <svg [lucideIcon]="'x' | iconOf" class="w-3.5 h-3.5"></svg>
+              </button>
+            </div>
+            <div class="flex-1 overflow-y-auto no-sb p-4 space-y-3">
+              <div class="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                <p class="text-[12px] font-semibold text-slate-700 mb-2">Revenue Opportunity</p>
+                <p class="text-[12px] text-slate-600 leading-relaxed">3 customers test-drove in the last 14 days with no follow-up quotation. Converting at ASP adds €2.1M pipeline.</p>
+              </div>
+              <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p class="text-[12px] font-semibold text-slate-700 mb-2">Parts Stockout Risk</p>
+                <p class="text-[12px] text-slate-600 leading-relaxed">Bosch O2 sensor has 2 units left. 4 open jobs need it this week.</p>
+              </div>
+            </div>
+            <div class="border-t border-[#E5E7EB] p-4 flex-shrink-0 bg-slate-50">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Ask Fortuna AI</p>
+              <div class="flex gap-2">
+                <input
+                  placeholder="Which bays are free now?"
+                  class="flex-1 h-10 px-3.5 text-[12.5px] bg-white border border-[#E5E7EB] rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-all"
+                />
+                <button type="button" class="w-10 h-10 flex items-center justify-center bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors flex-shrink-0">
+                  <svg [lucideIcon]="'send' | iconOf" class="w-3.5 h-3.5 text-white"></svg>
+                </button>
+              </div>
+            </div>
+          </aside>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="h-6 bg-slate-950 flex items-center px-5 gap-6 flex-shrink-0 select-none">
+    <span class="flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-[10px] font-medium text-white/40">Live IE-DUB-01</span>
+    </span>
+    <span class="text-[10px] text-white/25">DB {{ dbLatency() }}ms</span>
+    <span class="text-[10px] text-white/25">{{ activeJobs() }} jobs active</span>
+    <div class="ml-auto flex items-center gap-6">
+      <span class="text-[10px] text-white/25">Fortuna DMS v5.0 Enterprise</span>
+      <span class="text-[10px] text-white/25">Avonbrook Motors</span>
+    </div>
+  </div>
+</div>

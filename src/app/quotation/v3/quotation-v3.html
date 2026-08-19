@@ -1,0 +1,261 @@
+<div class="flex-1 overflow-y-auto no-sb bg-[#F8FAFC]">
+<div class="max-w-[1600px] mx-auto px-6 py-5 space-y-4 pb-8">
+  <app-quotation-page-header
+    class="block mb-2"
+    [quotation]="quotation"
+    [revision]="summaryRevision()"
+    [title]="pageTitle()"
+    [editableStatus]="true"
+    (save)="onSave()"
+    (exportPdf)="onExportPdf()"
+    (send)="onSend()"
+  />
+
+  <app-quotation-meta-bar [quotation]="quotation" />
+
+  <div class="flex flex-col xl:flex-row gap-4 xl:overflow-hidden">
+    <div class="flex-1 xl:overflow-y-auto no-sb flex flex-col min-w-0">
+      <div #stageScroller class="v3-stage-scroll flex items-center gap-1 border-b border-[#E5E7EB] mb-4 pb-0 -mb-px bg-white rounded-t-xl overflow-x-auto overflow-y-hidden" (wheel)="scrollStages($event, stageScroller)">
+        @for (stage of stages; track stage.id) {
+          <button
+            type="button"
+            class="v3-tab flex-none px-4 py-3 flex items-center gap-2 text-[13px] font-medium border-b-2 -mb-px hover:text-slate-900"
+            [class.is-active]="activeStage() === stage.id"
+            [class.is-incomplete]="isIncomplete(stage.id)"
+            [class.text-slate-900]="activeStage() === stage.id"
+            [class.text-slate-600]="activeStage() !== stage.id"
+            [style.borderBottomColor]="activeStage() === stage.id ? '#2563eb' : 'transparent'"
+            [attr.aria-pressed]="activeStage() === stage.id"
+            (click)="setStage(stage.id)"
+          >
+            <span class="step-badge" [class.is-active]="activeStage() === stage.id" [class.is-complete]="isComplete(stage.id)" [class.is-incomplete]="isIncomplete(stage.id)">
+              @if (isComplete(stage.id)) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> }
+              @else if (isIncomplete(stage.id)) { <span class="text-[14px] leading-none">!</span> }
+              @else { {{ stageNumber(stage.id) }} }
+            </span>
+            <svg [lucideIcon]="stage.icon | iconOf" class="w-4 h-4"></svg>{{ stage.label }}
+          </button>
+        }
+      </div>
+
+      <div class="flex-1 space-y-4">
+        @if (activeStage() === 'customer') {
+          <div class="v3-panel space-y-4">
+            <div class="quotation-card p-6">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <h2 class="text-[15px] font-bold text-slate-900 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('customer') }}</span>Contact Details</h2>
+                <app-quotation-entity-lookup [quotation]="quotation" kind="customer" (selected)="refreshSummary()" />
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-[12px]">
+                <label><span class="field-label">Contact ID</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.contactId" /></label>
+                <label><span class="field-label">Prefix</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.prefix" /></label>
+                <label><span class="field-label">First Name</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.firstName" /></label>
+                <label><span class="field-label">Middle Name</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.middleName" /></label>
+                <label><span class="field-label">Surname</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.surname" /></label>
+                <label><span class="field-label">Company</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.company" /></label>
+                <label><span class="field-label">Mobile</span><input type="tel" class="detail-input is-editable" [(ngModel)]="quotation.contact.mobile" /></label>
+                <label><span class="field-label">Email</span><input type="email" class="detail-input is-editable" [(ngModel)]="quotation.contact.email" /></label>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="quotation-card p-6">
+                <h3 class="text-[13px] font-bold text-slate-900 mb-4 flex items-center gap-2"><svg [lucideIcon]="'map-pin' | iconOf" class="w-4 h-4 text-slate-500"></svg>Address Information</h3>
+                <div class="grid grid-cols-2 gap-4 text-[12px]">
+                  <label class="col-span-2"><span class="field-label">Address 1</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.address1" /></label>
+                  <label class="col-span-2"><span class="field-label">Address 2</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.address2" /></label>
+                  <label><span class="field-label">City</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.city" /></label>
+                  <label><span class="field-label">Post Code</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.postCode" /></label>
+                </div>
+              </div>
+
+              <div class="quotation-card p-6">
+                <h3 class="text-[13px] font-bold text-slate-900 mb-4 flex items-center gap-2"><svg [lucideIcon]="'clipboard-list' | iconOf" class="w-4 h-4 text-slate-500"></svg>Enquiry</h3>
+                <label class="block"><span class="field-label">Detail of Enquiry</span><textarea class="detail-input is-editable h-16 py-2 resize-y" [(ngModel)]="quotation.contact.enquiry"></textarea></label>
+                <div class="grid grid-cols-2 gap-4 mt-3 text-[12px]">
+                  <label><span class="field-label">Vehicle Type</span>
+                    <select class="detail-input is-editable" [(ngModel)]="quotation.contact.vehicleType">
+                      <option>New</option>
+                      <option>Used</option>
+                    </select>
+                  </label>
+                  <label><span class="field-label">Budget</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.budget" /></label>
+                  <label class="col-span-2"><span class="field-label">Source of Enquiry</span>
+                    <select class="detail-input is-editable" [(ngModel)]="quotation.contact.source">
+                      <option>Showroom</option>
+                      <option>Website</option>
+                      <option>Referral</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (activeStage() === 'requirements') {
+          <div class="v3-panel quotation-card p-6">
+            <h2 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('requirements') }}</span>Vehicle Requirements</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-[12px]">
+              <label><span class="field-label">Required Date</span><input type="date" class="detail-input is-editable" [(ngModel)]="quotation.requirements.requiredDate" /></label>
+              <label><span class="field-label">Model Range</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.modelRange" /></label>
+              <label><span class="field-label">General Size</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.generalSize" /></label>
+              <label><span class="field-label">Category</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.category" /></label>
+              <label><span class="field-label">Colour</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.colour" /></label>
+              <label><span class="field-label">Engine From</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.engineFrom" /></label>
+              <label><span class="field-label">Engine To</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.engineTo" /></label>
+              <label><span class="field-label">Year From</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.yearFrom" /></label>
+              <label><span class="field-label">Year To</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.yearTo" /></label>
+              <label><span class="field-label">Mileage From</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.mileageFrom" /></label>
+              <label><span class="field-label">Mileage To</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.mileageTo" /></label>
+              <div class="flex items-end gap-4 pb-2"><label class="flex gap-2"><input type="checkbox" [(ngModel)]="quotation.requirements.includeNew" />New</label><label class="flex gap-2"><input type="checkbox" [(ngModel)]="quotation.requirements.includeUsed" />Used</label></div>
+              <label class="col-span-full"><span class="field-label">Other Requirements</span><textarea class="detail-input is-editable h-20 py-2" [(ngModel)]="quotation.requirements.comments"></textarea></label>
+            </div>
+          </div>
+        }
+
+        @if (activeStage() === 'vehicle') {
+          <div class="v3-panel">
+            <div class="quotation-card p-6">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <h2 class="text-[15px] font-bold text-slate-900 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('vehicle') }}</span>Vehicle Details</h2>
+                <app-quotation-entity-lookup [quotation]="quotation" kind="vehicle" (selected)="recalculate()" />
+              </div>
+              <div class="grid grid-cols-2 gap-4 text-[12px]">
+                <label><span class="field-label">Model</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.modelDescription" /></label>
+                <label><span class="field-label">Stock Branch</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.stockBranch" /></label>
+                <label><span class="field-label">Stock Number</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.stockNumber" /></label>
+                <label><span class="field-label">Colour</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.colour" /></label>
+                <label><span class="field-label">Reg</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.regNo" /></label>
+                <label><span class="field-label">Chassis Number</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.chassis" /></label>
+                <label><span class="field-label">Year</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.year" /></label>
+                <label><span class="field-label">Mileage (km)</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.vehicle.mileage" /></label>
+              </div>
+              <h3 class="text-[13px] font-bold text-slate-900 mt-6 mb-4 pt-5 border-t border-slate-200 flex items-center gap-2"><svg [lucideIcon]="'settings-2' | iconOf" class="w-4 h-4 text-slate-500"></svg>Technical & Pricing Information</h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-[12px]">
+                <label><span class="field-label">Description</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.description" /></label>
+                <label><span class="field-label">Category</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.category" /></label>
+                <label><span class="field-label">Franchise</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.franchise" /></label>
+                <label><span class="field-label">Engine Size</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.engineSize" /></label>
+                <label><span class="field-label">Fuel Type</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.fuelType" /></label>
+                <label><span class="field-label">Body Type</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.bodyType" /></label>
+                <label class="col-span-2 md:col-span-4"><span class="field-label">Price</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.vehicle.retailPrice" (ngModelChange)="recalculate()" /></label>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (activeStage() === 'accessories') {
+          <div class="v3-panel quotation-card p-6">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h2 class="text-[15px] font-bold text-slate-900 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('accessories') }}</span>Accessories & Options</h2>
+              <app-quotation-entity-lookup [quotation]="quotation" kind="accessory" (selected)="recalculate()" />
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <fieldset class="form-section">
+                <legend>Available Accessories</legend>
+                <div class="quotation-table-wrap">
+                  <table class="w-full min-w-[380px] text-left text-[12px]">
+                    <thead class="quotation-table-head"><tr><th>Description</th><th>Retail Price</th><th></th></tr></thead>
+                    <tbody class="divide-y divide-[#F1F5F9]">
+                      @for (item of accessories.catalog; track item.code; let i = $index) {
+                        <tr class="cursor-pointer" [class.bg-blue-50]="accessories.selectedAvailableIndex() === i" (click)="accessories.selectAvailable(i)">
+                          <td class="px-3 py-2 font-medium text-slate-700">{{ item.description }}</td>
+                          <td class="px-3 py-2 text-slate-600 tabular-nums">{{ item.price | zar }}</td>
+                          <td class="px-3 py-2 text-slate-400">{{ item.code }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <div class="flex justify-end mt-3">
+                  <button type="button" class="action-primary" [disabled]="accessories.selectedAvailableIndex() === null" (click)="accessories.add()">
+                    <svg [lucideIcon]="'plus' | iconOf" class="w-3.5 h-3.5"></svg>Add Accessory
+                  </button>
+                </div>
+              </fieldset>
+              <fieldset class="form-section">
+                <legend>Selected Accessories</legend>
+                <div class="quotation-table-wrap">
+                  <table class="w-full min-w-[420px] text-left text-[12px]">
+                    <thead class="quotation-table-head"><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+                    <tbody class="divide-y divide-[#F1F5F9]">
+                      @for (item of quotation.accessories; track item.code + '-' + $index; let i = $index) {
+                        <tr [class.bg-blue-50]="accessories.selectedSelectedIndex() === i" (click)="accessories.selectSelected(i)">
+                          <td class="px-3 py-2"><input class="detail-input is-editable" [(ngModel)]="item.description" /></td>
+                          <td class="px-3 py-2"><input type="number" min="1" class="detail-input is-editable w-16 tabular-nums" [(ngModel)]="item.quantity" (ngModelChange)="recalculate()" /></td>
+                          <td class="px-3 py-2"><input type="number" min="0" class="detail-input is-editable w-24 tabular-nums" [(ngModel)]="item.price" (ngModelChange)="recalculate()" /></td>
+                          <td class="px-3 py-2 font-semibold text-slate-900 tabular-nums">{{ item.price * item.quantity | zar }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <div class="flex justify-between items-center mt-3">
+                  <button type="button" class="action-secondary" [disabled]="accessories.selectedSelectedIndex() === null" (click)="accessories.remove()">Remove</button>
+                  <strong class="text-[13px] text-slate-800 tabular-nums">{{ accessories.total() | zar }}</strong>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        }
+
+        @if (activeStage() === 'tradein') {
+          <div class="v3-panel grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="quotation-card p-6">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <h2 class="text-[15px] font-bold text-slate-900 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('tradein') }}</span>Trade-in Vehicle</h2>
+                <app-quotation-entity-lookup [quotation]="quotation" kind="tradein" (selected)="recalculate()" />
+              </div>
+              <div class="grid grid-cols-2 gap-4 text-[12px]">
+                <label><span class="field-label">Reg</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.regNo" /></label>
+                <label><span class="field-label">Model</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.modelDescription" /></label>
+                <label><span class="field-label">Mileage (km)</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.mileage" /></label>
+                <label><span class="field-label">Est Value</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.estimatedValue" (ngModelChange)="recalculate()" /></label>
+                <label class="col-span-2"><span class="field-label">Settlement</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.settlement" /></label>
+              </div>
+              <label class="block mt-4"><span class="field-label">Trade-in Comments</span><textarea class="detail-input is-editable h-16 py-2 resize-y" [(ngModel)]="quotation.tradeIn.comments"></textarea></label>
+            </div>
+            <div class="quotation-card p-6"><h3 class="text-[13px] font-bold text-slate-900">Trade-in valuation</h3><label class="block mt-4"><span class="field-label">Valuer</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.valuer" /></label></div>
+          </div>
+        }
+
+        @if (activeStage() === 'finance') {
+          <div class="v3-panel quotation-card p-6">
+            <h2 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('finance') }}</span>Finance Details</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px]"><label><span class="field-label">Finance Provider</span><input class="detail-input is-editable" [(ngModel)]="quotation.finance.provider" /></label><label><span class="field-label">Repayments</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.finance.installments" /></label><label><span class="field-label">Monthly Payment</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.finance.monthlyPayment" /></label><label class="col-span-full flex gap-2"><input type="checkbox" [(ngModel)]="quotation.finance.arrangedByCustomer" />Finance arranged by customer</label></div>
+          </div>
+        }
+
+        @if (activeStage() === 'pricing') {
+          <div class="v3-panel quotation-card p-6">
+            <h2 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('pricing') }}</span>Pricing Summary</h2>
+            <div class="grid grid-cols-2 gap-3 text-[12px] max-w-xl">
+              <label><span class="field-label">Vehicle</span><input type="number" class="detail-input is-editable tabular-nums" [(ngModel)]="quotation.pricing.vehicleRetail" (ngModelChange)="quotation.vehicle.retailPrice = quotation.pricing.vehicleRetail.toString(); recalculate()" /></label>
+              <label><span class="field-label">Accessories</span><input type="number" class="detail-input tabular-nums" [value]="quotation.pricing.accessoriesTotal" readonly /></label>
+              <label><span class="field-label">Trade Discount</span><input type="number" class="detail-input is-editable tabular-nums" [(ngModel)]="quotation.pricing.tradeDiscount" (ngModelChange)="recalculate()" /></label>
+              <label><span class="field-label">Extra Discounts</span><input type="number" class="detail-input is-editable tabular-nums" [(ngModel)]="quotation.pricing.extraDiscounts" (ngModelChange)="recalculate()" /></label>
+              <label><span class="field-label">Deposit</span><input type="number" class="detail-input is-editable tabular-nums" [(ngModel)]="quotation.pricing.deposit" (ngModelChange)="recalculate()" /></label>
+              <label><span class="field-label">VAT</span><input type="number" class="detail-input is-editable tabular-nums" [(ngModel)]="quotation.pricing.vat" /></label>
+              <div><span class="field-label">Sub Total</span><div class="detail-input flex items-center font-semibold tabular-nums">{{ quotation.pricing.subTotal | zar }}</div></div>
+              <div><span class="field-label">Balance</span><div class="detail-input flex items-center font-semibold text-blue-700 tabular-nums">{{ quotation.pricing.totalPayment | zar }}</div></div>
+            </div>
+          </div>
+        }
+
+        @if (activeStage() === 'notes') {
+          <div class="v3-panel quotation-card p-6">
+            <h2 class="text-[15px] font-bold text-slate-900 mb-4 flex items-center gap-2.5"><span class="step-badge is-active">{{ stageNumber('notes') }}</span>Notes</h2>
+            <label>
+              <span class="field-label">Quotation Notes</span>
+              <textarea class="detail-input is-editable min-h-28 py-2 resize-y" [(ngModel)]="quotation.comments"></textarea>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <app-quotation-summary [quotation]="quotation" [revision]="summaryRevision()" (save)="onSave()" (exportPdf)="onExportPdf()" (send)="onSend()" />
+  </div>
+</div>
+</div>

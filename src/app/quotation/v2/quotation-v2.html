@@ -1,0 +1,209 @@
+<div class="flex-1 overflow-y-auto no-sb bg-[#F8FAFC]">
+<div class="max-w-[1600px] mx-auto px-6 py-5 space-y-4 pb-8">
+  <app-quotation-page-header
+    class="block mb-2"
+    [quotation]="quotation"
+    [revision]="summaryRevision()"
+    [title]="pageTitle()"
+    [editableStatus]="true"
+    (save)="onSave()"
+    (exportPdf)="onExportPdf()"
+    (send)="onSend()"
+  />
+
+  <app-quotation-meta-bar [quotation]="quotation" />
+
+  <div class="flex flex-col xl:flex-row gap-4 xl:overflow-hidden">
+    <div class="flex-1 xl:overflow-y-auto no-sb space-y-4 min-w-0">
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('customer') && !isOpen('customer')" [class.is-incomplete]="isIncomplete('customer') && !isOpen('customer')">
+        <button type="button" class="v2-section-toggle w-full px-4 py-3 flex items-center gap-3 justify-between hover:bg-slate-50" [attr.aria-expanded]="isOpen('customer')" (click)="toggleSection('customer')">
+          <span class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="step-badge" [class.is-active]="isOpen('customer')" [class.is-complete]="isComplete('customer')" [class.is-incomplete]="isIncomplete('customer')">@if (isComplete('customer')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('customer')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('customer') }} }</span>
+            <h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('customer') }}</h2>
+            @if (!isOpen('customer') && sectionSummary('customer')) {
+              <span class="section-preview">{{ sectionSummary('customer') }}</span>
+            }
+            @if (!isOpen('customer') && isIncomplete('customer')) { <span class="section-warning">{{ validationMessage('customer') }}</span> }
+          </span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="v2-chevron w-4 h-4 text-slate-500 transition-transform" [style.transform]="isOpen('customer') ? 'rotate(180deg)' : 'rotate(0deg)'"></svg>
+        </button>
+        @if (isOpen('customer')) {
+          <div class="px-4 py-4 border-t border-[#E5E7EB] grid grid-cols-2 md:grid-cols-3 gap-3 text-[12px]">
+            <div class="col-span-full flex justify-end"><app-quotation-entity-lookup [quotation]="quotation" kind="customer" (selected)="refreshSummary()" /></div>
+            <label><span class="field-label">First Name</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.firstName" /></label>
+            <label><span class="field-label">Prefix</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.prefix" /></label>
+            <label><span class="field-label">Middle Name</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.middleName" /></label>
+            <label><span class="field-label">Surname</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.surname" /></label>
+            <label><span class="field-label">Company</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.company" /></label>
+            <label><span class="field-label">Mobile</span><input type="tel" class="detail-input is-editable" [(ngModel)]="quotation.contact.mobile" /></label>
+            <label><span class="field-label">Email</span><input type="email" class="detail-input is-editable" [(ngModel)]="quotation.contact.email" /></label>
+            <label><span class="field-label">Address</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.address1" /></label>
+            <label><span class="field-label">Address 2</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.address2" /></label>
+            <label><span class="field-label">City</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.city" /></label>
+            <label><span class="field-label">Post Code</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.postCode" /></label>
+            <label><span class="field-label">Contact ID</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.contactId" /></label>
+            <label><span class="field-label">Enquiry Source</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.source" /></label>
+            <label><span class="field-label">Budget</span><input class="detail-input is-editable" [(ngModel)]="quotation.contact.budget" /></label>
+            <label class="col-span-full"><span class="field-label">Detail of Enquiry</span><textarea class="detail-input is-editable h-16 py-2" [(ngModel)]="quotation.contact.enquiry"></textarea></label>
+            <div class="col-span-full flex justify-end"><button type="button" class="action-primary" [disabled]="!isComplete('customer')" (click)="completeAndContinue('customer')">Complete & continue</button></div>
+          </div>
+        }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('requirements') && !isOpen('requirements')" [class.is-incomplete]="isIncomplete('requirements') && !isOpen('requirements')">
+        <button type="button" class="v2-section-toggle w-full justify-between" (click)="toggleSection('requirements')">
+          <span class="flex items-center gap-3 min-w-0"><span class="step-badge" [class.is-active]="isOpen('requirements')" [class.is-complete]="isComplete('requirements')" [class.is-incomplete]="isIncomplete('requirements')">@if (isComplete('requirements')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('requirements')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('requirements') }} }</span><h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('requirements') }}</h2>@if (!isOpen('requirements') && sectionSummary('requirements')) { <span class="section-preview">{{ sectionSummary('requirements') }}</span> }@if (!isOpen('requirements') && isIncomplete('requirements')) { <span class="section-warning">{{ validationMessage('requirements') }}</span> }</span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="w-4 h-4" [style.transform]="isOpen('requirements') ? 'rotate(180deg)' : ''"></svg>
+        </button>
+        @if (isOpen('requirements')) {
+          <div class="px-4 py-4 border-t grid grid-cols-2 md:grid-cols-4 gap-3 text-[12px]">
+            <label><span class="field-label">Required Date</span><input type="date" class="detail-input is-editable" [(ngModel)]="quotation.requirements.requiredDate" /></label>
+            <label><span class="field-label">Vehicle Type</span><select class="detail-input is-editable" [(ngModel)]="quotation.contact.vehicleType"><option>New</option><option>Used</option></select></label>
+            <label><span class="field-label">Model Range</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.modelRange" /></label>
+            <label><span class="field-label">General Size</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.generalSize" /></label>
+            <label><span class="field-label">Category</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.category" /></label>
+            <label><span class="field-label">Colour</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.colour" /></label>
+            <label><span class="field-label">Engine From</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.engineFrom" /></label>
+            <label><span class="field-label">Engine To</span><input class="detail-input is-editable" [(ngModel)]="quotation.requirements.engineTo" /></label>
+            <label><span class="field-label">Year From</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.yearFrom" /></label>
+            <label><span class="field-label">Year To</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.yearTo" /></label>
+            <label><span class="field-label">Mileage To</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.mileageTo" /></label>
+            <label><span class="field-label">Mileage From</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.requirements.mileageFrom" /></label>
+            <div class="flex items-end gap-4 pb-2"><label class="flex gap-2"><input type="checkbox" [(ngModel)]="quotation.requirements.includeNew" />New</label><label class="flex gap-2"><input type="checkbox" [(ngModel)]="quotation.requirements.includeUsed" />Used</label><label class="flex gap-2"><input type="checkbox" [(ngModel)]="quotation.requirements.includeReserved" />Reserved</label></div>
+            <label class="col-span-full"><span class="field-label">Other Requirements</span><textarea class="detail-input is-editable h-16 py-2" [(ngModel)]="quotation.requirements.comments"></textarea></label>
+            <div class="col-span-full flex justify-end"><button class="action-primary" (click)="completeAndContinue('requirements')">Complete & continue</button></div>
+          </div>
+        }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('vehicle') && !isOpen('vehicle')" [class.is-incomplete]="isIncomplete('vehicle') && !isOpen('vehicle')">
+        <button type="button" class="v2-section-toggle w-full px-4 py-3 flex items-center gap-3 justify-between hover:bg-slate-50" [attr.aria-expanded]="isOpen('vehicle')" (click)="toggleSection('vehicle')">
+          <span class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="step-badge" [class.is-active]="isOpen('vehicle')" [class.is-complete]="isComplete('vehicle')" [class.is-incomplete]="isIncomplete('vehicle')">@if (isComplete('vehicle')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('vehicle')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('vehicle') }} }</span>
+            <h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('vehicle') }}</h2>
+            @if (!isOpen('vehicle') && sectionSummary('vehicle')) {
+              <span class="section-preview">{{ sectionSummary('vehicle') }}</span>
+            }
+            @if (!isOpen('vehicle') && isIncomplete('vehicle')) { <span class="section-warning">{{ validationMessage('vehicle') }}</span> }
+          </span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="v2-chevron w-4 h-4 text-slate-500 transition-transform" [style.transform]="isOpen('vehicle') ? 'rotate(180deg)' : 'rotate(0deg)'"></svg>
+        </button>
+        @if (isOpen('vehicle')) {
+          <div class="px-4 py-4 border-t border-[#E5E7EB] grid grid-cols-2 md:grid-cols-3 gap-3 text-[12px]">
+            <div class="col-span-full flex justify-end"><app-quotation-entity-lookup [quotation]="quotation" kind="vehicle" (selected)="recalculate()" /></div>
+            <label><span class="field-label">Model</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.modelDescription" /></label>
+            <label><span class="field-label">Reg</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.regNo" /></label>
+            <label><span class="field-label">Colour</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.colour" /></label>
+            <label><span class="field-label">Mileage (km)</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.vehicle.mileage" /></label>
+            <label><span class="field-label">Stock</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.stockNumber" /></label>
+            <label><span class="field-label">Price</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.vehicle.retailPrice" (ngModelChange)="recalculate()" /></label>
+            <label><span class="field-label">Description</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.description" /></label>
+            <label><span class="field-label">Stock Branch</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.stockBranch" /></label>
+            <label><span class="field-label">Chassis</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.chassis" /></label>
+            <label><span class="field-label">Year</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.year" /></label>
+            <label><span class="field-label">Category</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.category" /></label>
+            <label><span class="field-label">Franchise</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.franchise" /></label>
+            <label><span class="field-label">Engine Size</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.engineSize" /></label>
+            <label><span class="field-label">Fuel Type</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.fuelType" /></label>
+            <label><span class="field-label">Body Type</span><input class="detail-input is-editable" [(ngModel)]="quotation.vehicle.bodyType" /></label>
+            <div class="col-span-full flex justify-end"><button type="button" class="action-primary" [disabled]="!isComplete('vehicle')" (click)="completeAndContinue('vehicle')">Complete & continue</button></div>
+          </div>
+        }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('accessories') && !isOpen('accessories')" [class.is-incomplete]="isIncomplete('accessories') && !isOpen('accessories')">
+        <button type="button" class="v2-section-toggle w-full px-4 py-3 flex items-center gap-3 justify-between hover:bg-slate-50" [attr.aria-expanded]="isOpen('accessories')" (click)="toggleSection('accessories')">
+          <span class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="step-badge" [class.is-active]="isOpen('accessories')" [class.is-complete]="isComplete('accessories')" [class.is-incomplete]="isIncomplete('accessories')">@if (isComplete('accessories')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('accessories')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('accessories') }} }</span>
+            <h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('accessories') }}</h2>
+            @if (!isOpen('accessories') && sectionSummary('accessories')) {
+              <span class="section-preview">{{ sectionSummary('accessories') }}</span>
+            }
+            @if (!isOpen('accessories') && isIncomplete('accessories')) { <span class="section-warning">{{ validationMessage('accessories') }}</span> }
+          </span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="v2-chevron w-4 h-4 text-slate-500 transition-transform" [style.transform]="isOpen('accessories') ? 'rotate(180deg)' : 'rotate(0deg)'"></svg>
+        </button>
+        @if (isOpen('accessories')) {
+          <div class="px-4 py-4 border-t border-[#E5E7EB]">
+            <div class="flex justify-end mb-3"><app-quotation-entity-lookup [quotation]="quotation" kind="accessory" (selected)="recalculate()" /></div>
+            <div class="quotation-table-wrap mb-3">
+              <table class="w-full min-w-[450px] text-left text-[12px]">
+                <thead class="quotation-table-head"><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+                <tbody class="divide-y divide-[#F1F5F9]">
+                  @for (item of quotation.accessories; track item.code) {
+                    <tr>
+                      <td class="px-3 py-2"><input class="detail-input is-editable" [(ngModel)]="item.description" /></td>
+                      <td class="px-3 py-2"><input type="number" min="1" class="detail-input is-editable w-20 tabular-nums" [(ngModel)]="item.quantity" (ngModelChange)="recalculate()" /></td>
+                      <td class="px-3 py-2"><input type="number" min="0" class="detail-input is-editable w-28 tabular-nums" [(ngModel)]="item.price" (ngModelChange)="recalculate()" /></td>
+                      <td class="px-3 py-2 font-semibold text-slate-900 tabular-nums">{{ item.price * item.quantity | zar }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('tradein') && !isOpen('tradein')" [class.is-incomplete]="isIncomplete('tradein') && !isOpen('tradein')">
+        <button type="button" class="v2-section-toggle w-full px-4 py-3 flex items-center gap-3 justify-between hover:bg-slate-50" [attr.aria-expanded]="isOpen('tradein')" (click)="toggleSection('tradein')">
+          <span class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="step-badge" [class.is-active]="isOpen('tradein')" [class.is-complete]="isComplete('tradein')" [class.is-incomplete]="isIncomplete('tradein')">@if (isComplete('tradein')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('tradein')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('tradein') }} }</span>
+            <h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('tradein') }}</h2>
+            @if (!isOpen('tradein') && sectionSummary('tradein')) {
+              <span class="section-preview">{{ sectionSummary('tradein') }}</span>
+            }
+            @if (!isOpen('tradein') && isIncomplete('tradein')) { <span class="section-warning">{{ validationMessage('tradein') }}</span> }
+          </span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="v2-chevron w-4 h-4 text-slate-500 transition-transform" [style.transform]="isOpen('tradein') ? 'rotate(180deg)' : 'rotate(0deg)'"></svg>
+        </button>
+        @if (isOpen('tradein')) {
+          <div class="px-4 py-4 border-t border-[#E5E7EB] grid grid-cols-2 md:grid-cols-3 gap-3 text-[12px]">
+            <div class="col-span-full flex justify-end"><app-quotation-entity-lookup [quotation]="quotation" kind="tradein" (selected)="recalculate()" /></div>
+            <label><span class="field-label">Reg</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.regNo" /></label>
+            <label><span class="field-label">Model</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.modelDescription" /></label>
+            <label><span class="field-label">Mileage (km)</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.mileage" /></label>
+            <label class="col-span-2"><span class="field-label">Est Value</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.estimatedValue" (ngModelChange)="recalculate()" /></label>
+            <label><span class="field-label">Settlement</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.settlement" /></label>
+            <label><span class="field-label">Valuer</span><input class="detail-input is-editable" [(ngModel)]="quotation.tradeIn.valuer" /></label>
+            <label class="col-span-full"><span class="field-label">Trade-in Comments</span><textarea class="detail-input is-editable h-16 py-2" [(ngModel)]="quotation.tradeIn.comments"></textarea></label>
+          </div>
+        }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('pricing') && !isOpen('pricing')" [class.is-incomplete]="isIncomplete('pricing') && !isOpen('pricing')">
+        <button type="button" class="v2-section-toggle w-full justify-between" (click)="toggleSection('pricing')"><span class="flex items-center gap-3"><span class="step-badge" [class.is-active]="isOpen('pricing')" [class.is-complete]="isComplete('pricing')" [class.is-incomplete]="isIncomplete('pricing')">@if (isComplete('pricing')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('pricing')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('pricing') }} }</span><h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('pricing') }}</h2>@if (!isOpen('pricing') && isIncomplete('pricing')) { <span class="section-warning">{{ validationMessage('pricing') }}</span> }</span><svg [lucideIcon]="'chevron-down' | iconOf" class="w-4 h-4"></svg></button>
+        @if (isOpen('pricing')) { <div class="px-4 py-4 border-t grid grid-cols-2 md:grid-cols-3 gap-3"><label><span class="field-label">Trade Discount</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.pricing.tradeDiscount" (ngModelChange)="recalculate()" /></label><label><span class="field-label">Extra Discount</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.pricing.extraDiscounts" (ngModelChange)="recalculate()" /></label><label><span class="field-label">Deposit</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.pricing.deposit" (ngModelChange)="recalculate()" /></label><label><span class="field-label">VAT</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.pricing.vat" (ngModelChange)="refreshSummary()" /></label></div> }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('finance') && !isOpen('finance')" [class.is-incomplete]="isIncomplete('finance') && !isOpen('finance')">
+        <button type="button" class="v2-section-toggle w-full justify-between" (click)="toggleSection('finance')"><span class="flex items-center gap-3"><span class="step-badge" [class.is-active]="isOpen('finance')" [class.is-complete]="isComplete('finance')" [class.is-incomplete]="isIncomplete('finance')">@if (isComplete('finance')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('finance')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('finance') }} }</span><h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('finance') }}</h2>@if (!isOpen('finance') && isIncomplete('finance')) { <span class="section-warning">{{ validationMessage('finance') }}</span> }</span><svg [lucideIcon]="'chevron-down' | iconOf" class="w-4 h-4"></svg></button>
+        @if (isOpen('finance')) { <div class="px-4 py-4 border-t grid grid-cols-2 md:grid-cols-3 gap-3"><label><span class="field-label">Finance Provider</span><input class="detail-input is-editable" [(ngModel)]="quotation.finance.provider" /></label><label><span class="field-label">Repayments</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.finance.installments" /></label><label><span class="field-label">Monthly Payment</span><input type="number" class="detail-input is-editable" [(ngModel)]="quotation.finance.monthlyPayment" /></label><label class="col-span-full flex gap-2 items-center"><input type="checkbox" [(ngModel)]="quotation.finance.arrangedByCustomer" /> Finance arranged by customer</label></div> }
+      </section>
+
+      <section class="quotation-card v2-section overflow-hidden" [class.is-complete]="isComplete('notes') && !isOpen('notes')" [class.is-incomplete]="isIncomplete('notes') && !isOpen('notes')">
+        <button type="button" class="v2-section-toggle w-full px-4 py-3 flex items-center gap-3 justify-between hover:bg-slate-50" [attr.aria-expanded]="isOpen('notes')" (click)="toggleSection('notes')">
+          <span class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="step-badge" [class.is-active]="isOpen('notes')" [class.is-complete]="isComplete('notes')" [class.is-incomplete]="isIncomplete('notes')">@if (isComplete('notes')) { <svg [lucideIcon]="'check' | iconOf" class="w-3.5 h-3.5"></svg> } @else if (isIncomplete('notes')) { <span class="text-[14px]">!</span> } @else { {{ sectionNumber('notes') }} }</span>
+            <h2 class="text-[14px] font-bold text-slate-900">{{ sectionTitle('notes') }}</h2>
+            @if (!isOpen('notes') && sectionSummary('notes')) {
+              <span class="section-preview">{{ sectionSummary('notes') }}</span>
+            }
+          </span>
+          <svg [lucideIcon]="'chevron-down' | iconOf" class="v2-chevron w-4 h-4 text-slate-500 transition-transform" [style.transform]="isOpen('notes') ? 'rotate(180deg)' : 'rotate(0deg)'"></svg>
+        </button>
+        @if (isOpen('notes')) {
+          <div class="px-4 py-4 border-t border-[#E5E7EB]">
+            <label>
+              <span class="field-label">Quotation Notes</span>
+              <textarea class="detail-input is-editable min-h-24 py-2 resize-y" [(ngModel)]="quotation.comments"></textarea>
+            </label>
+          </div>
+        }
+      </section>
+    </div>
+
+    <app-quotation-summary [quotation]="quotation" [revision]="summaryRevision()" (save)="onSave()" (exportPdf)="onExportPdf()" (send)="onSend()" />
+  </div>
+</div>
+</div>

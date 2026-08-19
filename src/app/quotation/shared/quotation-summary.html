@@ -1,0 +1,38 @@
+<aside class="w-full xl:w-80 xl:flex-shrink-0 bg-white rounded-xl border border-[#E5E7EB] shadow-sm h-fit xl:sticky xl:top-6 overflow-hidden">
+  <div class="px-5 py-4 border-b border-[#E5E7EB] bg-slate-50">
+    <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Quotation Summary</p>
+    <p class="text-[14px] font-semibold text-slate-900 mt-1.5 truncate">{{ customerName() }}</p>
+    <p class="text-[12px] text-slate-500 mt-0.5 truncate">{{ quotation().vehicle.modelDescription || 'No vehicle selected' }}</p>
+  </div>
+
+  <div class="p-5 space-y-3 text-[12px]">
+    <div class="space-y-2.5">
+      <div class="flex justify-between"><span class="text-slate-500">Vehicle</span><strong class="tabular-nums">{{ vehicleTotal() | zar }}</strong></div>
+      <div class="flex justify-between"><span class="text-slate-500">Accessories</span><strong class="tabular-nums">{{ accessoryTotal() | zar }}</strong></div>
+    </div>
+    <div class="border-t border-[#E5E7EB] pt-2.5 flex justify-between"><span class="text-slate-500">Gross</span><strong class="tabular-nums">{{ grossTotal() | zar }}</strong></div>
+    <div class="space-y-2.5">
+      <div class="flex justify-between"><span class="text-slate-500">Discount</span><strong class="tabular-nums text-red-600">-{{ quotation().pricing.totalDiscount | zar }}</strong></div>
+      <div class="flex justify-between"><span class="text-slate-500">Trade-in</span><strong class="tabular-nums text-red-600">-{{ tradeInTotal() | zar }}</strong></div>
+    </div>
+    <div class="border-t border-[#E5E7EB] pt-2.5 flex justify-between"><span class="text-slate-500">Balance</span><strong class="tabular-nums text-blue-700">{{ balanceTotal() | zar }}</strong></div>
+    <div class="flex justify-between"><span class="text-slate-500">VAT</span><strong class="tabular-nums">{{ quotation().pricing.vat | zar }}</strong></div>
+
+    <div class="rounded-lg px-3.5 py-3 bg-blue-600">
+      <p class="text-[10px] font-bold uppercase tracking-wide text-blue-100">Total Payment</p>
+      <p class="text-[24px] font-bold text-white mt-1 tabular-nums">{{ balanceTotal() + quotation().pricing.vat | zar }}</p>
+    </div>
+
+    <div class="flex flex-col gap-2 pt-1">
+      <button type="button" class="action-primary w-full h-10" (click)="save.emit()">
+        <svg [lucideIcon]="'save' | iconOf" class="w-3.5 h-3.5"></svg>Save
+      </button>
+      <button type="button" class="action-secondary w-full h-10" (click)="exportPdf.emit()">
+        <svg [lucideIcon]="'file-pdf' | iconOf" class="w-3.5 h-3.5"></svg>PDF
+      </button>
+      <button type="button" class="action-secondary w-full h-10" (click)="send.emit()">
+        <svg [lucideIcon]="'send' | iconOf" class="w-3.5 h-3.5"></svg>Send
+      </button>
+    </div>
+  </div>
+</aside>

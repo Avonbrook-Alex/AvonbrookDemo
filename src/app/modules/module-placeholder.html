@@ -1,0 +1,59 @@
+<div class="flex-1 overflow-y-auto bg-[#F8FAFC]">
+  @if (isAppearanceSettings()) {
+    <div class="max-w-4xl mx-auto p-8 fade-up">
+      <header>
+        <p class="text-[11px] font-bold uppercase tracking-[.14em] text-blue-600">Administration</p>
+        <h1 class="text-2xl font-bold text-slate-900 mt-1">Appearance settings</h1>
+        <p class="text-sm text-slate-500 mt-2">Choose the foreground accent used by primary actions and icons, and the background accent used by selected navigation, highlights and secondary surfaces.</p>
+      </header>
+
+      <section class="quotation-card p-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="md:col-span-2 rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-[12px] text-slate-600">
+          <strong class="text-slate-800">Click either colour square to choose a custom colour.</strong>
+          Changes are applied immediately across the website.
+        </div>
+        <label class="theme-colour-control">
+          <span class="theme-colour-swatch" [style.background]="theme.primary()">
+            <input type="color" [value]="theme.primary()" (input)="theme.setPrimary($any($event.target).value)" />
+          </span>
+          <span><strong>Primary foreground</strong><small>Buttons, active icons, links and emphasis</small><em>Click colour to change</em><code>{{ theme.primary() }}</code></span>
+        </label>
+        <label class="theme-colour-control">
+          <span class="theme-colour-swatch" [style.background]="theme.secondary()">
+            <input type="color" [value]="theme.secondary()" (input)="theme.setSecondary($any($event.target).value)" />
+          </span>
+          <span><strong>Secondary background</strong><small>Selected rows, icon backgrounds and highlights</small><em>Click colour to change</em><code>{{ theme.secondary() }}</code></span>
+        </label>
+      </section>
+
+      <section class="quotation-card p-6 mt-4">
+        <h2 class="text-sm font-bold text-slate-900">Ready-made themes</h2>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" class="theme-preset" (click)="theme.usePreset('#2563eb', '#eff6ff')"><i style="background:#2563eb"></i>Blue</button>
+          <button type="button" class="theme-preset" (click)="theme.usePreset('#7c3aed', '#f5f3ff')"><i style="background:#7c3aed"></i>Executive Violet</button>
+          <button type="button" class="theme-preset" (click)="theme.usePreset('#047857', '#ecfdf5')"><i style="background:#047857"></i>Emerald</button>
+          <button type="button" class="theme-preset" (click)="theme.usePreset('#c2410c', '#fff7ed')"><i style="background:#c2410c"></i>Amber</button>
+        </div>
+      </section>
+
+      <section class="quotation-card p-6 mt-4">
+        <h2 class="text-sm font-bold text-slate-900">Preview</h2>
+        <div class="flex flex-wrap items-center gap-3 mt-4">
+          <button type="button" class="action-primary">Primary action</button>
+          <span class="theme-preview-icon"><svg [lucideIcon]="'car' | iconOf" class="w-5 h-5"></svg></span>
+          <span class="theme-preview-selection">Selected navigation item</span>
+        </div>
+      </section>
+    </div>
+  } @else {
+  <div class="min-h-full flex items-center justify-center">
+    <div class="max-w-md text-center p-8 fade-up">
+    <div class="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto">
+      <svg [lucideIcon]="entry().icon | iconOf" class="w-7 h-7 text-blue-600"></svg>
+    </div>
+    <h1 class="text-xl font-bold text-slate-900 mt-5">{{ entry().label }}</h1>
+    <p class="text-sm leading-6 text-slate-500 mt-2">This page supports the demonstration of quotation screens, sidebar navigation, workspace tabs and the overall platform impression.</p>
+    </div>
+  </div>
+  }
+</div>
