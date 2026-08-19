@@ -28,7 +28,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build -- --base-href /Avonbrook-DEMO/
+      - run: npm run build -- --base-href /AvonbrookDemo/
 
       - uses: actions/configure-pages@v5
 
