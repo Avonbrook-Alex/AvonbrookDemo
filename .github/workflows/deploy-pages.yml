@@ -30,6 +30,10 @@ jobs:
 
       - run: npm run build -- --base-href /Avonbrook-DEMO/
 
+      - uses: actions/configure-pages@v5
+
+      - run: cp dist/quotation-variants/browser/index.html dist/quotation-variants/browser/404.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist/quotation-variants/browser
