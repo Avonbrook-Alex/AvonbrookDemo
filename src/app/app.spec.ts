@@ -18,10 +18,15 @@ const workspaceProviders = [
 
 describe('App', () => {
   beforeEach(async () => {
+    sessionStorage.setItem('fortuna-demo-auth', '1');
     await TestBed.configureTestingModule({
       imports: [App],
       providers: workspaceProviders,
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    sessionStorage.removeItem('fortuna-demo-auth');
   });
 
   it('should create the app', () => {
