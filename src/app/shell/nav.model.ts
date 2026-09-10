@@ -41,7 +41,8 @@ export const NAV_SECTIONS: NavSection[] = [
           { id: 'quotation-guided-new', label: 'New Quote (Guided)', icon: 'file-plus-2', attention: true },
           { id: 'quotation-staged-new', label: 'New Quote (Staged)', icon: 'file-plus-2', attention: true },
           { id: 'quotation-search', label: 'Search Quotes', icon: 'search', attention: true },
-          { id: 'vorders', label: 'Vehicle Orders', icon: 'car' },
+          { id: 'vorders', label: 'New Sales Order', icon: 'shopping-cart', attention: true },
+          { id: 'sales-order-search', label: 'Search Sales Orders', icon: 'search', attention: true },
           { id: 'deliver', label: 'Deliveries', icon: 'truck' },
         ],
       },
@@ -165,6 +166,12 @@ export function routerPathFor(id: string): string {
   if (id === 'quotation-search') {
     return '/quotation/search';
   }
+  if (id === 'vorders') {
+    return '/sales-orders/new';
+  }
+  if (id === 'sales-order-search') {
+    return '/sales-orders/search';
+  }
   return `/module/${id}`;
 }
 
@@ -185,6 +192,9 @@ export function navIdFromUrl(url: string): string {
       return 'quotation-staged-new';
     }
     return 'quotation-guided-new';
+  }
+  if (path.startsWith('/sales-orders')) {
+    return path.startsWith('/sales-orders/search') ? 'sales-order-search' : 'vorders';
   }
   const moduleMatch = path.match(/^\/module\/([^/]+)/);
   if (moduleMatch) {

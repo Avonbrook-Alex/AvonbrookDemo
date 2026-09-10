@@ -127,6 +127,15 @@ export class WorkspaceTabsService {
   }
 
   private metadata(path: string): Pick<WorkspaceTab, 'label' | 'icon'> {
+    if (path.startsWith('/sales-orders/search')) {
+      return { label: 'Search Sales Orders', icon: 'search' };
+    }
+    if (/^\/sales-orders\/\d+/.test(path)) {
+      return { label: `Sales Order ${path.split('/')[2]}`, icon: 'shopping-cart' };
+    }
+    if (path.startsWith('/sales-orders')) {
+      return { label: 'New Sales Order', icon: 'shopping-cart' };
+    }
     if (path.startsWith('/quotation/search')) {
       return { label: 'Search Quotes', icon: 'search' };
     }

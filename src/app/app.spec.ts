@@ -65,3 +65,32 @@ describe('App routing to staged quote', () => {
     expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-quotation-v3');
   });
 });
+
+describe('App routing to sales orders', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: workspaceProviders,
+    }).compileComponents();
+  });
+
+  it('redirects the Sales Orders root to the full editor', async () => {
+    const harness = await RouterTestingHarness.create('/sales-orders');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-sales-order-editor');
+  });
+
+  it('lazy-loads the Sales Order Enquiry at the search route', async () => {
+    const harness = await RouterTestingHarness.create('/sales-orders/search');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-sales-order-enquiry');
+  });
+
+  it('loads an existing Sales Order in the editor', async () => {
+    const harness = await RouterTestingHarness.create('/sales-orders/5101');
+    expect(harness.routeNativeElement?.tagName.toLowerCase()).toBe('app-sales-order-editor');
+    expect(harness.routeNativeElement?.textContent).toContain('SO-5101');
+    expect(harness.routeNativeElement?.textContent).toContain('This Ordered order is read-only.');
+    const lookups = harness.routeNativeElement?.querySelectorAll('.lookup-field select');
+    expect([...(lookups ?? [])].every((lookup) => (lookup as HTMLSelectElement).disabled)).toBe(
+      true,
+    );
+  });
+});

@@ -19,6 +19,29 @@ export const routes: Routes = [
   { path: 'quotation/staged/new', component: QuotationV3, title: 'New Quote (Staged)' },
   { path: 'quotation/staged/search', pathMatch: 'full', redirectTo: 'quotation/search' },
   { path: 'quotation/staged/quote/:number', component: QuotationV3, title: 'Quote (Staged)' },
+  {
+    path: 'sales-orders',
+    pathMatch: 'full',
+    redirectTo: 'sales-orders/new',
+  },
+  {
+    path: 'sales-orders/new',
+    loadComponent: () =>
+      import('./sales-orders/sales-order-editor').then((component) => component.SalesOrderEditor),
+    title: 'New Sales Order',
+  },
+  {
+    path: 'sales-orders/search',
+    loadComponent: () =>
+      import('./sales-orders/sales-order-enquiry').then((component) => component.SalesOrderEnquiry),
+    title: 'Search Sales Orders',
+  },
+  {
+    path: 'sales-orders/:id',
+    loadComponent: () =>
+      import('./sales-orders/sales-order-editor').then((component) => component.SalesOrderEditor),
+    title: 'Sales Order',
+  },
   { path: 'module/:id', component: ModulePlaceholder, title: 'Module' },
   { path: '**', redirectTo: 'dashboard' },
 ];

@@ -1,0 +1,298 @@
+<main class="sales-order-page" aria-labelledby="salesOrderTitle">
+  <div class="sales-order-layout">
+    <header class="sales-order-heading">
+      <span class="sales-order-heading__icon" aria-hidden="true">
+        <svg [lucideIcon]="'shopping-cart' | iconOf"></svg>
+      </span>
+      <div>
+        <h1 id="salesOrderTitle">Sales Order Enquiry</h1>
+        <p>Find ordered sales orders awaiting processing for {{ currentBranch }}.</p>
+      </div>
+      <span class="branch-badge"
+        ><svg [lucideIcon]="'building-2' | iconOf"></svg>{{ currentBranch }}</span
+      >
+    </header>
+
+    <form class="quotation-card filter-card" [formGroup]="filterForm" (ngSubmit)="search()">
+      <div class="section-heading">
+        <div>
+          <h2>Search criteria</h2>
+          <p>Enter both ends of a range to apply it.</p>
+        </div>
+        <button type="submit" class="action-primary">
+          <svg [lucideIcon]="'search' | iconOf"></svg>Search
+        </button>
+      </div>
+
+      <div class="filter-grid">
+        <fieldset class="range-fieldset">
+          <legend>Date</legend>
+          <label><span>From</span><input type="date" formControlName="fromDate" /></label>
+          <label
+            ><span>To</span
+            ><input
+              type="date"
+              formControlName="toDate"
+              (blur)="normalizeRange('fromDate', 'toDate')"
+          /></label>
+        </fieldset>
+        <fieldset class="range-fieldset">
+          <legend>Order No.</legend>
+          <label
+            ><span>From</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="fromOrderNumber"
+              (keydown)="restrictNumericKey($event)"
+          /></label>
+          <label
+            ><span>To</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="toOrderNumber"
+              (keydown)="restrictNumericKey($event)"
+              (blur)="normalizeRange('fromOrderNumber', 'toOrderNumber')"
+          /></label>
+        </fieldset>
+        <fieldset class="range-fieldset">
+          <legend>Sales Order No.</legend>
+          <label
+            ><span>From</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="fromSalesOrderNumber"
+              (keydown)="restrictNumericKey($event)"
+          /></label>
+          <label
+            ><span>To</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="toSalesOrderNumber"
+              (keydown)="restrictNumericKey($event)"
+              (blur)="normalizeRange('fromSalesOrderNumber', 'toSalesOrderNumber')"
+          /></label>
+        </fieldset>
+        <fieldset class="range-fieldset">
+          <legend>Quotation No.</legend>
+          <label
+            ><span>From</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="fromQuotationNumber"
+              (keydown)="restrictNumericKey($event)"
+          /></label>
+          <label
+            ><span>To</span
+            ><input
+              type="number"
+              min="0"
+              inputmode="numeric"
+              formControlName="toQuotationNumber"
+              (keydown)="restrictNumericKey($event)"
+              (blur)="normalizeRange('fromQuotationNumber', 'toQuotationNumber')"
+          /></label>
+        </fieldset>
+        <fieldset class="range-fieldset range-fieldset--wide">
+          <legend>Customer</legend>
+          <label
+            ><span>From</span
+            ><select formControlName="fromCustomerCode">
+              <option [ngValue]="null">First customer</option>
+              @for (customer of customers; track customer.code) {
+                <option [ngValue]="customer.code">{{ customer.label }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span>To</span
+            ><select
+              formControlName="toCustomerCode"
+              (blur)="normalizeRange('fromCustomerCode', 'toCustomerCode')"
+            >
+              <option [ngValue]="null">Last customer</option>
+              @for (customer of customers; track customer.code) {
+                <option [ngValue]="customer.code">{{ customer.label }}</option>
+              }
+            </select></label
+          >
+        </fieldset>
+        <fieldset class="range-fieldset range-fieldset--wide">
+          <legend>Sales Person</legend>
+          <label
+            ><span>From</span
+            ><select formControlName="fromSalespersonCode">
+              <option [ngValue]="null">First salesperson</option>
+              @for (person of salespeople; track person.code) {
+                <option [ngValue]="person.code">{{ person.label }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span>To</span
+            ><select
+              formControlName="toSalespersonCode"
+              (blur)="normalizeRange('fromSalespersonCode', 'toSalespersonCode')"
+            >
+              <option [ngValue]="null">Last salesperson</option>
+              @for (person of salespeople; track person.code) {
+                <option [ngValue]="person.code">{{ person.label }}</option>
+              }
+            </select></label
+          >
+        </fieldset>
+      </div>
+
+      <label class="archive-filter"
+        ><input type="checkbox" formControlName="showArchive" (change)="search()" /><span
+          >Show Archive</span
+        ></label
+      >
+    </form>
+
+    @if (feedback(); as notice) {
+      <div
+        class="feedback"
+        [class.feedback--success]="notice.tone === 'success'"
+        [class.feedback--error]="notice.tone === 'error'"
+        role="status"
+        aria-live="polite"
+      >
+        {{ notice.message }}
+      </div>
+    }
+
+    <section
+      class="quotation-card result-card"
+      aria-labelledby="salesOrderResultsTitle"
+      [attr.aria-busy]="state() === 'loading'"
+    >
+      <div class="section-heading result-heading">
+        <div>
+          <h2 id="salesOrderResultsTitle">Sales Orders</h2>
+          <p>
+            Ordered and not processed · {{ rows().length }} record{{
+              rows().length === 1 ? '' : 's'
+            }}
+          </p>
+        </div>
+        @if (dirtyCount()) {
+          <span class="dirty-badge">{{ dirtyCount() }} unsaved</span>
+        }
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">
+            Sales orders matching the selected filters
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Archive</th>
+              <th scope="col">Division</th>
+              <th scope="col">Order No.</th>
+              <th scope="col">Sales Order No.</th>
+              <th scope="col">Quotation No.</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Employee</th>
+              <th scope="col">Model Name</th>
+              <th scope="col" class="number">Total Payment</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (state() === 'initial') {
+              <tr>
+                <td colspan="10" class="state-cell">
+                  <strong>Ready to search.</strong
+                  ><span>Select Search to load awaiting sales orders.</span>
+                </td>
+              </tr>
+            } @else if (state() === 'loading') {
+              <tr>
+                <td colspan="10" class="state-cell">
+                  <span class="spinner" aria-hidden="true"></span>Loading sales orders…
+                </td>
+              </tr>
+            } @else if (state() === 'error') {
+              <tr>
+                <td colspan="10" class="state-cell">
+                  <strong>Unable to load sales orders.</strong
+                  ><button type="button" class="text-action" (click)="search()">Try again</button>
+                </td>
+              </tr>
+            } @else if (state() === 'empty') {
+              <tr>
+                <td colspan="10" class="state-cell">
+                  <strong>No sales orders found.</strong
+                  ><span>Adjust the search criteria and try again.</span>
+                </td>
+              </tr>
+            } @else {
+              @for (row of rows(); track row.salesOrderId) {
+                <tr
+                  tabindex="0"
+                  [class.is-selected]="selectedId() === row.salesOrderId"
+                  [class.age-under-30]="ageBand(row) === 'under-30'"
+                  [class.age-over-30]="ageBand(row) === 'over-30'"
+                  [class.age-over-60]="ageBand(row) === 'over-60'"
+                  [class.age-over-90]="ageBand(row) === 'over-90'"
+                  [attr.aria-selected]="selectedId() === row.salesOrderId"
+                  (click)="selectRow(row)"
+                  (keydown.enter)="selectRow(row)"
+                  (dblclick)="chooseRow(row)"
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="archiveValue(row)"
+                      (click)="$event.stopPropagation()"
+                      (change)="setArchive(row, $any($event.target).checked)"
+                      [attr.aria-label]="'Archive sales order ' + row.salesOrderId"
+                    />
+                  </td>
+                  <td>{{ row.division }}</td>
+                  <td class="mono">{{ row.orderNumber }}</td>
+                  <td class="mono primary-cell">{{ row.salesOrderId }}</td>
+                  <td class="mono">{{ row.quotationNumber }}</td>
+                  <td class="customer-cell">{{ row.customer }}</td>
+                  <td>{{ row.employee }}</td>
+                  <td>{{ row.modelName }}</td>
+                  <td class="number mono">
+                    {{ row.totalPayment | currency: 'EUR' : 'symbol' : '1.2-2' }}
+                  </td>
+                  <td class="mono">{{ row.salesOrderDate | date: 'dd/MM/yyyy' }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="page-footer">
+      <div class="age-legend" aria-label="Sales order age legend">
+        <span><i class="age-swatch age-swatch--90"></i>90+ Days Old</span
+        ><span><i class="age-swatch age-swatch--60"></i>60+ Days Old</span
+        ><span><i class="age-swatch age-swatch--30"></i>30+ Days Old</span
+        ><span><i class="age-swatch age-swatch--current"></i>≤ 30 Days Old</span>
+      </div>
+      <div class="footer-actions">
+        <button type="button" class="action-secondary" (click)="updateArchive()">
+          Archive Update
+        </button>
+        <button type="button" class="action-primary" (click)="chooseSelected()">Select</button>
+        <button type="button" class="action-secondary" (click)="exit()">Exit</button>
+      </div>
+    </div>
+  </div>
+</main>

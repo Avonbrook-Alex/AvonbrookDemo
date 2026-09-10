@@ -1,0 +1,504 @@
+<main class="sales-editor" aria-labelledby="salesOrderEditorTitle">
+  <div class="editor-shell">
+    <header class="editor-header">
+      <div class="title-group">
+        <span class="title-icon" aria-hidden="true"
+          ><svg [lucideIcon]="'shopping-cart' | iconOf"></svg
+        ></span>
+        <div>
+          <div class="title-line">
+            <h1 id="salesOrderEditorTitle">
+              {{ order().id ? order().orderNumber : 'New Sales Order' }}
+            </h1>
+            <span
+              class="status-badge"
+              [class.status-badge--ordered]="order().status === 'Ordered'"
+              [class.status-badge--lost]="order().status === 'Lost'"
+              >{{ order().status }}</span
+            >
+          </div>
+          <p>Create and manage a Showroom Sales Order for {{ order().division }}.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="action-secondary" (click)="openSearch()">
+          <svg [lucideIcon]="'search' | iconOf"></svg>Search
+        </button>
+        <button type="button" class="action-secondary" (click)="newOrder()">
+          <svg [lucideIcon]="'plus' | iconOf"></svg>New
+        </button>
+        <button type="button" class="action-primary" [disabled]="isReadOnly()" (click)="save()">
+          <svg [lucideIcon]="'save' | iconOf"></svg>{{ order().id ? 'Amend' : 'Save' }}
+        </button>
+      </div>
+    </header>
+
+    @if (feedback(); as notice) {
+      <div
+        class="feedback"
+        [class.feedback--success]="notice.tone === 'success'"
+        [class.feedback--error]="notice.tone === 'error'"
+        role="status"
+        aria-live="polite"
+      >
+        {{ notice.message }}
+      </div>
+    }
+
+    @if (loadState() === 'error') {
+      <section class="quotation-card state-card">
+        <strong>Unable to load this Sales Order.</strong
+        ><button type="button" class="action-secondary" (click)="openSearch()">
+          Return to search
+        </button>
+      </section>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <section class="order-meta quotation-card">
+          <label><span>Sales Order</span><input formControlName="orderNumber" readonly /></label>
+          <label><span>Quotation No.</span><input formControlName="quotationNumber" /></label>
+          <label><span>Division</span><input formControlName="division" readonly /></label>
+          <label><span>Order Date</span><input type="date" formControlName="orderDate" /></label>
+          <label
+            ><span>Required Delivery</span
+            ><input type="date" formControlName="requiredDeliveryDate"
+          /></label>
+          <label
+            ><span>Salesperson *</span
+            ><select formControlName="salesperson">
+              <option value="">Select salesperson</option>
+              @for (person of salespeople; track person.code) {
+                <option [value]="person.label">{{ person.label }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span>Sale Type</span
+            ><select formControlName="saleType" (change)="changeSaleType($event)">
+              <option value="Retail">Retail</option>
+              <option value="Trade">Trade</option>
+            </select></label
+          >
+        </section>
+
+        <nav #stageScroller class="stage-tabs" aria-label="Sales Order stages" role="tablist" (wheel)="scrollStages($event, stageScroller)">
+          @for (stage of stages; track stage.id) {
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeStage() === stage.id"
+              [class.is-active]="activeStage() === stage.id"
+              [class.is-complete]="isComplete(stage.id)"
+              [class.is-incomplete]="isIncomplete(stage.id)"
+              (click)="setStage(stage.id)"
+            >
+              <span class="step" [class.is-complete]="isComplete(stage.id)" [class.is-incomplete]="isIncomplete(stage.id)">@if (isComplete(stage.id)) { <svg [lucideIcon]="'check' | iconOf"></svg> } @else if (isIncomplete(stage.id)) { ! } @else { {{ stageNumber(stage.id) }} }</span
+              ><svg [lucideIcon]="stage.icon | iconOf"></svg>{{ stage.label }}
+            </button>
+          }
+        </nav>
+
+        <div class="editor-body">
+          <div class="stage-column">
+            @if (activeStage() === 'order') {
+              <section class="quotation-card stage-panel" formGroupName="vehicle">
+                <div class="section-heading">
+                  <div>
+                    <h2>Vehicle or model</h2>
+                    <p>
+                      Select a stocked vehicle or a model order, then amend the core details if
+                      required.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="action-secondary"
+                    [disabled]="isReadOnly()"
+                    (click)="clearVehicle()"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div class="lookup-field"><app-sales-order-entity-lookup kind="vehicle" [items]="vehicleCatalog" [disabled]="isReadOnly()" (selected)="selectVehicle($any($event))" /></div>
+                <div class="field-grid">
+                  <label><span>Stock No.</span><input formControlName="stockNumber" /></label>
+                  <label><span>Model Code *</span><input formControlName="modelCode" /></label>
+                  <label class="span-2"
+                    ><span>Model Description</span><input formControlName="modelDescription"
+                  /></label>
+                  <label><span>Registration</span><input formControlName="registration" /></label>
+                  <label
+                    ><span>Chassis Number</span><input formControlName="chassisNumber"
+                  /></label>
+                  <label><span>Colour</span><input formControlName="colour" /></label>
+                  <label><span>Year</span><input type="number" formControlName="year" /></label>
+                  <label
+                    ><span>Mileage</span><input type="number" formControlName="mileage"
+                  /></label>
+                  <label
+                    ><span>Retail Price</span><input type="number" formControlName="retailPrice"
+                  /></label>
+                  <label
+                    ><span>Vehicle Discount</span><input type="number" formControlName="discount"
+                  /></label>
+                </div>
+              </section>
+            }
+
+            @if (activeStage() === 'accessories') {
+              <section class="quotation-card stage-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Accessories</h2>
+                    <p>Add approved accessories and amend quantity or retail price.</p>
+                  </div>
+                </div>
+                <div class="add-row"><app-sales-order-entity-lookup kind="accessory" [items]="accessoryCatalog" [disabled]="isReadOnly()" (selected)="addAccessory($any($event))" /></div>
+                <div class="table-wrap" formArrayName="accessories">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Retail Price</th>
+                        <th>Total</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (
+                        group of accessories.controls;
+                        track group.controls['id'].value;
+                        let i = $index
+                      ) {
+                        <tr [formGroupName]="i">
+                          <td><input formControlName="code" readonly /></td>
+                          <td><input formControlName="description" /></td>
+                          <td><input type="number" min="1" formControlName="quantity" /></td>
+                          <td><input type="number" min="0" formControlName="retailPrice" /></td>
+                          <td class="money">
+                            {{
+                              (group.controls['quantity'].value || 0) *
+                                (group.controls['retailPrice'].value || 0) | currency: 'EUR'
+                            }}
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              class="icon-action"
+                              aria-label="Remove accessory"
+                              [disabled]="isReadOnly()"
+                              (click)="removeAccessory(i)"
+                            >
+                              <svg [lucideIcon]="'trash-2' | iconOf"></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                      @if (!accessories.length) {
+                        <tr>
+                          <td colspan="6" class="empty-row">No accessories selected.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            }
+
+            @if (activeStage() === 'trade-ins') {
+              <section class="quotation-card stage-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Trade-ins</h2>
+                    <p>
+                      @if (form.controls.saleType.value === 'Trade') {
+                        Trade orders cannot contain trade-in vehicles.
+                      } @else {
+                        Add, amend, or remove each vehicle offered in the deal.
+                      }
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="action-primary"
+                    [disabled]="isReadOnly() || form.controls.saleType.value === 'Trade'"
+                    (click)="addTradeIn()"
+                  >
+                    Add trade-in
+                  </button>
+                </div>
+                <div formArrayName="tradeIns" class="trade-list">
+                  @for (
+                    group of tradeIns.controls;
+                    track group.controls['id'].value;
+                    let i = $index
+                  ) {
+                    <fieldset [formGroupName]="i">
+                      <legend>Trade-in {{ i + 1 }}</legend>
+                      <div class="field-grid">
+                        <label
+                          ><span>Registration</span><input formControlName="registration" /></label
+                        ><label class="span-2"
+                          ><span>Model</span><input formControlName="modelDescription" /></label
+                        ><label
+                          ><span>Year</span><input type="number" formControlName="year" /></label
+                        ><label
+                          ><span>Mileage</span
+                          ><input type="number" formControlName="mileage" /></label
+                        ><label
+                          ><span>Allowance</span
+                          ><input type="number" formControlName="allowance" /></label
+                        ><label
+                          ><span>Settlement</span
+                          ><input type="number" formControlName="settlement" /></label
+                        ><label
+                          ><span>Trade-in Discount</span
+                          ><input type="number" formControlName="discount"
+                        /></label>
+                      </div>
+                      <button
+                        type="button"
+                        class="remove-link"
+                        [disabled]="isReadOnly()"
+                        (click)="removeTradeIn(i)"
+                      >
+                        Remove trade-in
+                      </button>
+                    </fieldset>
+                  }
+                  @if (!tradeIns.length) {
+                    <p class="empty-panel">No trade-ins recorded.</p>
+                  }
+                </div>
+              </section>
+            }
+
+            @if (activeStage() === 'customer') {
+              <section class="quotation-card stage-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Customer and driver</h2>
+                    <p>Record the purchasing customer and the registered driver.</p>
+                  </div>
+                </div>
+                <div class="lookup-field"><app-sales-order-entity-lookup kind="customer" [items]="customerCatalog" [disabled]="isReadOnly()" (selected)="selectCustomer($any($event))" /></div>
+                <fieldset formGroupName="customer">
+                  <legend>Customer</legend>
+                  <div class="field-grid person-grid">
+                    <label><span>Code</span><input formControlName="customerCode" /></label
+                    ><label><span>Title</span><input formControlName="title" /></label
+                    ><label><span>First name</span><input formControlName="firstName" /></label
+                    ><label><span>Surname</span><input formControlName="surname" /></label
+                    ><label class="span-2"
+                      ><span>Company</span><input formControlName="company" /></label
+                    ><label><span>Mobile</span><input type="tel" formControlName="mobile" /></label
+                    ><label><span>Email</span><input type="email" formControlName="email" /></label
+                    ><label class="span-2"
+                      ><span>Address</span><input formControlName="address" /></label
+                    ><label><span>City</span><input formControlName="city" /></label
+                    ><label><span>Postcode</span><input formControlName="postcode" /></label>
+                  </div>
+                </fieldset>
+                <label class="same-toggle"
+                  ><input
+                    type="checkbox"
+                    formControlName="driverSameAsCustomer"
+                    (change)="toggleDriverSame()"
+                  />Driver details are the same as the customer</label
+                >
+                <fieldset
+                  formGroupName="driver"
+                  [class.is-muted]="form.controls.driverSameAsCustomer.value"
+                >
+                  <legend>Driver</legend>
+                  <div class="field-grid person-grid">
+                    <label><span>Title</span><input formControlName="title" /></label
+                    ><label><span>First name</span><input formControlName="firstName" /></label
+                    ><label><span>Surname</span><input formControlName="surname" /></label
+                    ><label class="span-2"
+                      ><span>Company</span><input formControlName="company" /></label
+                    ><label><span>Mobile</span><input type="tel" formControlName="mobile" /></label
+                    ><label><span>Email</span><input type="email" formControlName="email" /></label
+                    ><label class="span-2"
+                      ><span>Address</span><input formControlName="address" /></label
+                    ><label><span>City</span><input formControlName="city" /></label
+                    ><label><span>Postcode</span><input formControlName="postcode" /></label>
+                  </div>
+                </fieldset>
+              </section>
+            }
+
+            @if (activeStage() === 'finance') {
+              <section class="quotation-card stage-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Finance</h2>
+                    <p>Capture the core finance arrangement used to complete this order.</p>
+                  </div>
+                </div>
+                <label class="same-toggle"
+                  ><input
+                    type="checkbox"
+                    [checked]="form.controls.finance.controls.required.value"
+                    [disabled]="isReadOnly()"
+                    (change)="
+                      form.controls.finance.controls.required.setValue($any($event.target).checked)
+                    "
+                  />Finance is required</label
+                >
+                @if (form.controls.finance.controls.required.value) {
+                  <div class="field-grid" formGroupName="finance">
+                    <label class="span-2"
+                      ><span>Provider *</span><input formControlName="provider" /></label
+                    ><label
+                      ><span>Amount *</span><input type="number" formControlName="amount" /></label
+                    ><label
+                      ><span>Agreement No.</span><input formControlName="agreementNumber" /></label
+                    ><label
+                      ><span>Term (months) *</span
+                      ><input type="number" formControlName="termMonths" /></label
+                    ><label
+                      ><span>Interest rate %</span
+                      ><input type="number" step="0.01" formControlName="interestRate" /></label
+                    ><label
+                      ><span>Deposit</span><input type="number" formControlName="deposit" /></label
+                    ><label
+                      ><span>Monthly payment</span
+                      ><input type="number" formControlName="monthlyPayment"
+                    /></label>
+                  </div>
+                } @else {
+                  <p class="empty-panel">Customer-arranged finance or cash sale.</p>
+                }
+              </section>
+            }
+
+            @if (activeStage() === 'review') {
+              <section class="quotation-card stage-panel">
+                <div class="section-heading">
+                  <div>
+                    <h2>Review and confirmation</h2>
+                    <p>Complete general notes and management confirmations before ordering.</p>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <label
+                    ><span>Source</span
+                    ><select formControlName="source">
+                      <option>Showroom</option>
+                      <option>Telephone</option>
+                      <option>Website</option>
+                      <option>Referral</option>
+                    </select></label
+                  ><label
+                    ><span>Business Manager</span><input formControlName="businessManager" /></label
+                  ><label><span>Confirmed By</span><input formControlName="confirmedBy" /></label
+                  ><label
+                    ><span>Dealer Manager</span><input formControlName="dealerManager" /></label
+                  ><label class="span-4"
+                    ><span>Comments</span><textarea formControlName="comments" rows="5"></textarea>
+                  </label>
+                </div>
+                <div class="confirm-note">
+                  <strong>Confirmation rule</strong
+                  ><span
+                    >An Open Sales Order needs a customer, salesperson, complete finance details
+                    when applicable, and a stocked vehicle.</span
+                  >
+                </div>
+                <div class="decision-actions">
+                  <button
+                    type="button"
+                    class="danger-action"
+                    [disabled]="isReadOnly()"
+                    (click)="markLost()"
+                  >
+                    Sale Lost</button
+                  ><button
+                    type="button"
+                    class="action-primary"
+                    [disabled]="!canConfirm()"
+                    (click)="confirm()"
+                  >
+                    Confirm Sales Order
+                  </button>
+                </div>
+              </section>
+            }
+            <div class="stage-actions">
+              <button
+                type="button"
+                class="action-secondary"
+                [disabled]="activeStage() === 'order'"
+                (click)="previousStage()"
+              >
+                Previous
+              </button>
+              @if (activeStage() !== 'review') {
+                <button type="button" class="action-primary" (click)="continueStage()">
+                  Continue
+                </button>
+              }
+            </div>
+          </div>
+
+          <aside class="summary-card quotation-card" aria-label="Sales Order totals">
+            <div class="summary-heading">
+              <span>Sales Order Summary</span><strong>{{ order().orderNumber }}</strong>
+            </div>
+            <dl>
+              <div>
+                <dt>Vehicle retail</dt>
+                <dd>{{ totals().vehicleRetail | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Vehicle discount</dt>
+                <dd>-{{ totals().vehicleDiscount | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Accessories</dt>
+                <dd>{{ totals().accessories | currency: 'EUR' }}</dd>
+              </div>
+              <div class="divider">
+                <dt>Gross</dt>
+                <dd>{{ totals().gross | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Trade-in allowances</dt>
+                <dd>-{{ totals().tradeInAllowance | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Settlements</dt>
+                <dd>{{ totals().settlements | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Trade-in discounts</dt>
+                <dd>{{ totals().tradeInDiscount | currency: 'EUR' }}</dd>
+              </div>
+              <div class="total">
+                <dt>Total payment</dt>
+                <dd>{{ totals().totalPayment | currency: 'EUR' }}</dd>
+              </div>
+              <div>
+                <dt>Deposit</dt>
+                <dd>-{{ totals().deposit | currency: 'EUR' }}</dd>
+              </div>
+              <div class="balance">
+                <dt>Balance to finance</dt>
+                <dd>{{ totals().balanceToFinance | currency: 'EUR' }}</dd>
+              </div>
+            </dl>
+            @if (isReadOnly()) {
+              <p class="locked-note">
+                <svg [lucideIcon]="'lock' | iconOf"></svg>This {{ order().status }} order is
+                read-only.
+              </p>
+            }
+          </aside>
+        </div>
+      </form>
+    }
+  </div>
+</main>
